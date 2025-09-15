@@ -1,0 +1,37 @@
+[project]
+name = "modern-python"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "Gilgamesh", email = "18860289355@163.com" }
+]
+requires-python = ">=3.11"
+dependencies = [    "click>=8.2.1",
+    "importlib-metadata>=8.7.0",
+    "pydantic>=2.11.7",
+    "requests>=2.32.5",]
+
+[dependency-groups]
+dev = [
+    "myst-parser>=4.0.1",
+    "nox>=2025.5.1",
+    "pytest>=8.4.2",
+    "pytest-cov>=7.0.0",
+    "ruff>=0.13.0",
+    "sphinx>=8.2.3",
+    "sphinx-autodoc-typehints>=3.2.0",
+    "sphinx-rtd-theme>=3.0.2",
+]
+
+[build-system]
+requires = ["uv_build>=0.8.17,<0.9.0"]
+build-backend = "uv_build"
+
+[tool.ruff]
+per-file-ignores = { "tests/*" = ["S101","ANN","D"] }
+select = ["ANN","B","B9","C","E","F","I","S","W","D"]
+ignore = ["E203","E501"]
+
+[tool.ruff.lint.pycodestyle]
+max-line-length = 100
