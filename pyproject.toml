@@ -7,17 +7,21 @@ authors = [
     { name = "Gilgamesh", email = "18860289355@163.com" }
 ]
 requires-python = ">=3.11"
-dependencies = [    "click>=8.2.1",
+dependencies = [
+    "click>=8.2.1",
     "importlib-metadata>=8.7.0",
     "pydantic>=2.11.7",
-    "requests>=2.32.5",]
+    "requests>=2.32.5",
+]
 
 [dependency-groups]
 dev = [
+    "coverage[toml]>=7.10.6",
     "myst-parser>=4.0.1",
     "nox>=2025.5.1",
     "pytest>=8.4.2",
     "pytest-cov>=7.0.0",
+    "pytest-mock>=3.15.0",
     "ruff>=0.13.0",
     "sphinx>=8.2.3",
     "sphinx-autodoc-typehints>=3.2.0",
@@ -35,3 +39,13 @@ ignore = ["E203","E501"]
 
 [tool.ruff.lint.pycodestyle]
 max-line-length = 100
+
+[tool.coverage.paths]
+source = ["src", "*/site-packages"]
+
+[tool.coverage.run]
+branch = true
+source = ["modern_python"]
+
+[tool.coverage.report]
+show_missing = true

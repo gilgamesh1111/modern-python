@@ -76,7 +76,7 @@ def format(session):
     session.install("ruff")
     session.run("ruff","check",*args,"--fix")
 ```
-在Nox session设置好之后，您可以像这样重新格式化代码：
+在Nox session设置好之后，可以像这样重新格式化代码：
 ```bash
 $ uv run nox -rs format
 ```
@@ -96,7 +96,7 @@ import time
 import click
 
 # 本地库
-from hypermodern_python import wikipedia
+from modern_python import wikipedia
 ```
 启用Ruff导入检查（`I` 为 `import`）：
 ```toml
