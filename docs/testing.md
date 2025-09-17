@@ -87,6 +87,10 @@ class TestClass:
         with pytest.raises(AssertionError):
             assert hasattr(x, "check")
 ```
+```{note}
+在该例子中，`pytest.raises` 用于在测试期间检查异常是否发生。
+如果报错（`assert hasattr(x, "check")`），且异常类型是AssertionError，那么`pytest`测试通过。更多的，参考[pytest.raises](https://docs.pytest.org/en/latest/reference.html#pytest-raises)
+```
 
 ## 使用 `Coverage.py` 进行代码覆盖率
 代码覆盖率是指在运行测试时，程序源代码被执行的程度。Python程序的代码覆盖率可以使用名为`Coverage.py`的工具来检测。可以通过`pytest-cov`插件安装它，该插件将`Coverage.py`与`pytest`集成：
@@ -602,5 +606,5 @@ def tests(session):
 现在可以通过向Nox会话传递`-m e2e`来运行端到端测试，使用双横线（--）将它们与`Nox`的自身选项分开。以下是如何在Python 3.12的测试环境中运行端到端测试的方法：
 
 ```bash
-nox -rs tests-3.12 -- -m e2e
+$ uv run nox -rs tests-3.12 -- -m e2e
 ```

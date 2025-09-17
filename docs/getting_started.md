@@ -48,7 +48,7 @@ Git 是一个分布式版本控制系统，它追踪文件的每一次变更，�
 *   **创建虚拟环境**:
     在你的项目根目录下运行，`uv` 会创建一个名为 `.venv` 的虚拟环境。
     ```bash
-    uv init modern_python -p 3.11.13
+    $ uv init modern_python -p 3.11.13
     ```
     这里的 `-p` 参数用于指定 Python 版本，默认为 `3.11`。
     而modern_python会生成新的文件夹，并且该文件夹有以下结构：

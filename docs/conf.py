@@ -1,6 +1,6 @@
 """Sphinx configuration."""
 
-theme="sphinx_rtd_theme"
+theme = "sphinx_rtd_theme"
 project = "modern_python"
 author = "Gilgamesh"
 copyright = f"2025, {author}"
@@ -10,12 +10,13 @@ extensions = [
     "sphinx.ext.napoleon",
     "sphinx_autodoc_typehints",
     "myst_parser",
-    "sphinx_rtd_theme",]
+    "sphinx_rtd_theme",
+]
 
 html_theme = "sphinx_rtd_theme"
 
 html_theme_options = {
-    'collapse_navigation': False,
+    "collapse_navigation": False,
 }
 
 root_doc = "index"

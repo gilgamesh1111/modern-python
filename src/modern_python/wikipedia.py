@@ -1,5 +1,7 @@
 import click
+import pydantic
 import requests
+from pydantic import BaseModel
 
 API_URL = "https://{language}.wikipedia.org/api/rest_v1/page/random/summary"
 headers = {
@@ -10,18 +12,21 @@ headers = {
 }
 
 
-def random_page(language):
+class Page(BaseModel):
+    title: str
+    extract: str
+
+
+def random_page(language: str = "en") -> Page:
     url = API_URL.format(language=language)
     try:
         with requests.get(url, headers=headers) as response:
             response.raise_for_status()
-            return response.json()
-    except requests.RequestException as error:
+            return Page.model_validate(response.json())
+    except (requests.RequestException, pydantic.ValidationError) as error:
         message = str(error)
         raise click.ClickException(message)
 
 
 if __name__ == "__main__":
     data = random_page()
-    print(data["title"])
-    print(data["extract"])
