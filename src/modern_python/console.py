@@ -22,5 +22,6 @@ def main(language: str) -> None:
     click.secho(page.title, fg="green")
     click.echo(textwrap.fill(page.extract))
 
+
 if __name__ == "__main__":
     main()

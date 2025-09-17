@@ -7,6 +7,7 @@ index
 getting_started
 testing
 linting
+typing
 CICD
 ```
 
