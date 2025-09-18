@@ -1,4 +1,5 @@
 import pytest
+from _pytest.config import Config
 
 
 @pytest.fixture
@@ -11,5 +12,5 @@ def mock_requests_get(mocker):
     return mock
 
 
-def pytest_configure(config):
+def pytest_configure(config: Config) -> None:
     config.addinivalue_line("markers", "e2e: mark as end-to-end test.")

@@ -234,6 +234,7 @@ def random_page(language: str = "en") -> Page:
 ```
 ## 运行时类型检查
 由于py提供的是鸭子类型，所以运行时也不会检查类型是否正确，
+% missing from source
 
 ## 使用Ruff进行类型警告
 配置`pyproject.toml`以启用由插件生成的警告（ANN即annotations）：
@@ -253,3 +254,66 @@ $ uv run nox -rs lint
 per-file-ignores = { "tests/*" = ["ANN","S101"] }
 ```
 ## 为Nox Session添加类型注解
+在本节中，将展示如何为Nox session添加类型注解。如果已禁用Nox会话的类型覆盖警告（ANN），请为本节的目的重新启用它们。
+
+Nox session的核心类型是nox.sessions.Session，它是session函数唯一的参数。这些函数的返回值是None。按照以下方式注解您的会话函数：
+```py
+# noxfile.py
+from nox.sessions import Session
+
+def tests(session: Session) -> None: ...
+
+#以此类推
+```
+% missing from source
+## 为tests添加类型注解
+在本节中，将展示如何向tests添加类型注解。如果已禁用tests的类型覆盖率警告（ANN），本节需要重新启用它们。
+
+Pytest中的测试函数使用参数(parameter)来声明它们使用的`test fixture`。你不需要指定`test fixture`的类型，而是指定`test fixture`提供给测试函数的值的类型。例如，`mock_requests_get`返回一个标准的mock对象，类型为`unittest.mock.Mock`。（实际类型是`unittest.mock.MagicMock`，但这里使用更通用的类型来注释测试函数。）我们从注释`test_wikipedia.py`中的测试函数开始：
+
+```py
+# tests/test_wikipedia.py
+from unittest.mock import Mock
+
+
+def test_random_page_uses_given_language(mock_requests_get: Mock) -> None: ...
+# 以此类推
+```
+下面，注释一下`mock_requests_get`本身。这个函数的返回类型为`unittest.mock.Mock`。该函数接受一个参数，即pytest-mock中的`mocker fixture`，其类型为`pytest_mock.MockFixture`：
+```py
+# tests/conftest.py
+from unittest.mock import Mock
+
+from pytest_mock import MockFixture
+
+
+def mock_requests_get(mocker: MockFixture) -> Mock: ...
+```
+在`tests/test_console.py`中使用相同的类型签名：
+```py
+# tests/test_console.py
+from unittest.mock import Mock
+
+from pytest_mock import MockFixture
+
+
+def mock_wikipedia_random_page(mocker: MockFixture) -> Mock: ...
+```
+`tests/test_console.py`中还定义了一个返回click.testing.CliRunner的简单 fixture：
+```py
+# tests/test_console.py
+from click.testing import CliRunner
+
+
+def runner() -> CliRunner: ...
+```
+关于`pytest_configure`。该函数接受一个Pytest配置对象作为其唯一参数。但该对象类型（目前）不是Pytest的公共接口的一部分。可以选择使用Any或者深入Pytest内部导入`_pytest.config.Config`。我们选择后者：
+```py
+# tests/conftest.py
+from _pytest.config import Config
+
+def pytest_configure(config: Config) -> None: ...
+```
+
+
+我们探索Python类型系统的旅程结束。类型注解使你的程序更容易理解、调试和维护。静态类型检查器使用类型注解和类型推断来验证程序的类型正确性，而无需执行它，帮助你发现许多否则可能被忽视的bug。
