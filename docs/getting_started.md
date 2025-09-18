@@ -17,8 +17,8 @@ IDE (Integrated Development Environment) 是现代软件开发的基石。它不
 
 Git 是一个分布式版本控制系统，它追踪文件的每一次变更，是项目可维护性的核心保障。
 
-*   **变更历史与可追溯性:** Git 记录了每一次代码提交 (commit)，包含作者、时间和变更内容。当出现问题时，你可以迅速定位到引入该问题的具体提交，实现快速回滚 (revert) 或修复。
-*   **分支策略 (Branching):** 开发新功能或修复 Bug 时，应创建一个独立的分支，在不影响主线 (如 `main` 分支) 稳定性的情况下开发测试。只有当功能完善并通过测试后，才将其合并 (merge) 回主线。这种隔离机制是保证主代码库时刻健壮的关键。
+*   **变更历史与可追溯性:** Git 记录了每一次代码提交 (commit)，包含作者、时间和变更内容。当出现问题时，你可以迅速定位到引入该问题的具体提交，实现快速回滚 (revert) 和修复。
+*   **分支策略 (Branching):** 开发新功能或修复 Bug 时，应创建一个独立的分支，在不影响主线 (如 `main` 分支) 稳定性的情况下开发测试。只有当功能完善并通过测试后，才将其合并 (merge) 回主线。这种隔离机制是保证主代码库时刻健康的关键。
 *   **团队协作的基石:** 配合 [GitHub](https://github.com/) 或 [GitLab](https://gitlab.com/) 等平台，Git 的 Pull Request (或 Merge Request) 机制让团队可以进行代码审查 (Code Review)，在代码合并前发现潜在问题，传播知识，并统一代码风格。
 
 没有版本控制的项目是脆弱的。Git 为代码库提供了“后悔药”和“保险”，确保任何改动都可控、可查、可恢复。
@@ -191,7 +191,7 @@ import .foo
 ```python
 import modern_python.foo
 ```
-为了保持一致，我们最好也这样写，但是
+为了保持一致，我们最好也这样写,但是，当进入到python环境（`uv run python`）,并且输入：
 ```python
 >>> import sys,pprint
 >>> pprint.pp(sys.path)
@@ -205,6 +205,7 @@ import modern_python.foo
  "D:\\git_clone\\modern_python\\.venv\\Lib\\site-packages"
 ]
 ```
+
 该列表代表python包在哪个路径查找，
 列表第一个代表模块查找的路径是在`src/modern_python`中，找模块`modern_python`，这样当然是找不到的，所以，我们需要将我们自己的模块安装到虚拟环境中（使用最后一种查找方式）。
 
@@ -264,8 +265,14 @@ Options:
 初始化项目：`uv init modern_python --lib -p 3.11`
 
 下载依赖项：`uv add requests`
+新建文件:`src/modern_python/__init__.py`
+在其中添加
+```py
+# src/modern_python/__init__.py
+__version__ = "0.1.0"
+```
 
-接下来，将文件 `src/modern_python/console.py` 替换为如下所示的源代码。
+接下来，新建文件 `src/modern_python/console.py` 添加如下所示的源代码。
 
 ```python
 # src/modern_python/console.py
@@ -278,13 +285,18 @@ from modern_python import __version__
 
 
 API_URL = "https://en.wikipedia.org/api/rest_v1/page/random/summary"
-
+headers = {
+    "User-Agent": (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+        "(HTML, like Gecko) Chrome/108.0.0.0 Safari/537.36"
+    )
+}
 
 @click.command()
 @click.version_option(version=__version__)
 def main():
     """The modern Python project."""
-    with requests.get(API_URL) as response:
+    with requests.get(API_URL,headers=headers) as response:
         response.raise_for_status()
         data = response.json()
 
