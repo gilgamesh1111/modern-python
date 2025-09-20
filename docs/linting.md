@@ -80,7 +80,6 @@ def format(session):
 ```bash
 $ uv run nox -rs format
 ```
-% missing from source
 不提供参数调用 nox 会触发所有session，包括 format。最好只验证代码风格而不修改冲突的文件。通过在顶部设置 nox.options.sessions 来默认排除 format session：
 ```python
 # noxfile.py
@@ -179,6 +178,8 @@ $ uv run nox -rs audit
 $ uv remove insecure-package
 ```
 ## 使用 uv 在 Nox session 中管理依赖
+一般来说，在nox中也需要管理依赖，在nox中的环境一般来说我们是使用`uv sync`、`session.install()`，但是注意到，第一种处理方法虽然管理了依赖，但并没有在nox中下载该环境，仅仅是使用外部环境，这样的话，并不能完整的复现我们需要的环境，第二种方式，虽然在nox下载了，但并没有管理依赖版本。
+
 
 ## 使用 pre-commit 管理Git Hooks
 Git提供了Hook，允许你在重要操作发生（如提交，推送）时运行自定义命令。你可以利用这一点在提交更改时运行自动化检查。pre-commit是一个用于管理和维护此类Hook的框架。使用它可以将最佳行业标准代码检查工具集成到你的工作流程中，即使这些工具是用除Python以外的语言编写的。

@@ -13,11 +13,35 @@ headers = {
 
 
 class Page(BaseModel):
+    """Page resource.
+
+    Attributes:
+        title: The title of the Wikipedia page.
+        extract: A plain text summary.
+
+    """
+
     title: str
     extract: str
 
 
 def random_page(language: str = "en") -> Page:
+    """Return a random page.
+
+    Performs a GET request to the /page/random/summary endpoint.
+
+    Args:
+        language: The Wikipedia language edition. By default, the English
+            Wikipedia is used ("en").
+
+    Returns:
+        A page resource.
+
+    Raises:
+        ClickException: The HTTP request failed or the HTTP response
+            contained an invalid body.
+
+    """
     url = API_URL.format(language=language)
     try:
         with requests.get(url, headers=headers) as response:

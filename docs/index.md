@@ -8,7 +8,9 @@ getting_started
 testing
 linting
 typing
+doucumentation
 CICD
+apidocs/index
 ```
 
 # Welcome to Modern Python
