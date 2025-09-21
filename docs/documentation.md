@@ -81,38 +81,125 @@ convention = "google"
 现在运行`uv run nox -rs lint`，插件将报告缺少文档字符串。这是因为tests和 Nox session仍然没有文档。
 
 ## 为 Nox Session添加docstrings
-在Nox会话中的文档字符串使您的noxfile.py成为一个对贡献者友好、欢迎的地方（同样，几个月后对自己也是如此）。这一点尤其正确，因为当您使用--list-sessions列出会话时，Nox会显示它们。
+在nox session中添加文档字符串，当使用--list-sessions列出session时，Nox会显示它们。
 ```py
 # noxfile.py
 """Nox sessions."""
-
-def install_with_constraints(session: Session, *args: str, **kwargs: Any) -> None:
-    """Install packages constrained by Poetry's lock file."""
-
-def black(session: Session) -> None:
-    """Run black code formatter."""
-
-def lint(session: Session) -> None:
-    """Lint using flake8."""
-
-def safety(session: Session) -> None:
-    """Scan dependencies for insecure packages."""
-
-def mypy(session: Session) -> None:
-    """Type-check using mypy."""
-
-def pytype(session: Session) -> None:
-    """Type-check using pytype."""
-
 def tests(session: Session) -> None:
     """Run the test suite."""
 
-def typeguard(session: Session) -> None:
-    """Runtime type checking using Typeguard."""
-
 def audit(session: Session) -> None:
-    """Audit installed packages for security vulnerabilities."""
+    """Scan dependencies for insecure packages."""
+
+def lint(session: Session) -> None:
+    """Lint using ruff."""
+
+def format(session: Session) -> None:
+    """Format using ruff."""
+
+def typeguard(session):
+    """Run typeguard when testing."""
 ```
-Nox现在提供了自动化快速且信息丰富的概览：
-% missing from source
-## 向tests添加docstrings
+查看概览：
+```bash
+$ uv run nox --list-sessions
+
+nox sessions.
+
+Sessions defined in D:\git_clone\modern_python\noxfile.py:
+
+* tests-3.11 -> Run the test suite.
+* tests-3.12 -> Run the test suite.
+* audit -> Scan dependencies for insecure packages.
+* lint-3.11 -> Lint using ruff.
+* lint-3.12 -> Lint using ruff.
+- format -> Format using ruff.
+- typeguard-3.11 -> Run typeguard when testing.
+
+sessions marked with * are selected, sessions marked with - are skipped.
+```
+## 为tests添加docstrings
+以下是关于记录测试用例的三个有用指南：
+- 明确说明预期的行为，并对此进行具体说明。
+- 省略所有从它是测试用例这一事实中已经可以推断出来的内容。例如，避免使用像“测试是否”、“正确”、“应该”这样的词。
+- 使用'It'来指代被测试的系统。无需反复写出被测试的具体函数、类或模块的名称。。（更好的地方可能是测试模块的文档字符串，或者如果使用测试类，那么就在测试类中。）
+
+以下示例演示了如何为测试用例编写文档字符串：
+```py
+# tests/test_console.py
+def test_main_succeeds(runner: CliRunner, mock_requests_get: Mock) -> None:
+    """It exits with a status code of zero."""
+```
+## 使用 xdoctest 运行文档示例
+好的示例可以替代冗长的解释，人们擅长从示例中学习。
+
+按照惯例，文档字符串示例应像在Python环境中输入一样编写。下面是`wikipedia.random_page`文档中的一个示例：
+
+```py
+# src/modern_python/wikipedia.py
+def random_page(language: str = "en") -> Page:
+    """Return a random page.
+
+    Performs a GET request to the /page/random/summary endpoint.
+
+    Args:
+        language: The Wikipedia language edition. By default, the English
+            Wikipedia is used ("en").
+
+    Returns:
+        A page resource.
+
+    Raises:
+        ClickException: The HTTP request failed or the HTTP response
+            contained an invalid body.
+
+    Example:
+        >>> from modern_python import wikipedia
+        >>> page = wikipedia.random_page(language="en")
+        >>> bool(page.title)
+        True
+    """
+```
+- 为什么示例在打印到控制台之前将页面标题转换为布尔值?
+诚然，这使得示例的表达性降低，但另一方面，示例变得可重复。毕竟，事先无法知道函数返回哪些数据。
+
+- 为什么想让示例可重复？因为这使得可以将示例作为测试运行。
+
+xdoctest包运行你的文档字符串中的示例，并将实际输出与文档字符串中预期的输出进行比较。这具有多重作用：
+
+- 检查示例的正确性。
+- 确保文档是最新的。
+- 为你的代码库提供额外的测试覆盖率。
+
+将此工具添加到你的开发者依赖项：
+```bash
+$ uv add xdoctest --dev
+```
+在终端运行：
+```bash
+$ uv run xdoctest src/modern_python/wikipedia.py
+```
+或者使用包名：
+```bash
+$ uv run xdoctest modern_python.wikipedia
+```
+将以下Nox session添加。此session会安装依赖包，因为工具本身以及示例都需要能够导入它。
+```py
+# noxfile.py
+@nox.session(python=["3.8", "3.7"])
+def xdoctest(session: Session) -> None:
+    """Run examples with xdoctest."""
+    args = session.posargs or ["all"]
+    session.run("uv", "sync", external=True)
+    session.run("xdoctest", package, *args)
+```
+默认情况下，Nox会话使用all子命令来运行所有示例。您也可以使用list子命令列出示例，或者运行特定的示例：
+
+Xdoctest以及作为插件与Pytest集成，因此也可以将此工具安装到现有的Nox会话中用于Pytest，并通过--xdoctest选项启用它。在这里，我们使用的是独立模式，其优点是保持单元测试和doctest分离。
+
+## 使用 Sphinx 创建文档
+Sphinx是官方Python文档和许多开源项目使用的文档工具。将Sphinx添加为的开发依赖：
+```bash
+$ uv add sphinx --dev
+```
+创建一个名为docs的目录。主文档位于文件docs/index.rst中。让我们从一个简单的占位文本开始：

@@ -34,12 +34,15 @@ def random_page(language: str = "en") -> Page:
         language: The Wikipedia language edition. By default, the English
             Wikipedia is used ("en").
 
-    Returns:
-        A page resource.
-
     Raises:
         ClickException: The HTTP request failed or the HTTP response
             contained an invalid body.
+
+    Example:
+        >>> from modern_python import wikipedia
+        >>> page = wikipedia.random_page(language="en")
+        >>> bool(page.title)
+        True
 
     """
     url = API_URL.format(language=language)

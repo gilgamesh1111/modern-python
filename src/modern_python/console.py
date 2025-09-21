@@ -1,4 +1,5 @@
 """The modern Python project."""
+
 import textwrap
 
 import click

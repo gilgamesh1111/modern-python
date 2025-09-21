@@ -180,6 +180,31 @@ $ uv remove insecure-package
 ## 使用 uv 在 Nox session 中管理依赖
 一般来说，在nox中也需要管理依赖，在nox中的环境一般来说我们是使用`uv sync`、`session.install()`，但是注意到，第一种处理方法虽然管理了依赖，但并没有在nox中下载该环境，仅仅是使用外部环境，这样的话，并不能完整的复现我们需要的环境，第二种方式，虽然在nox下载了，但并没有管理依赖版本。
 
+使用pip时，使用`pip install -c requirements.txt <package>`来管理依赖，这里的`-c`即`--constraints`，用于限制依赖的版本，这样的话可以根据，你的`requirements.txt`限定依赖版本。
+
+当前`uv`暂时没有通过uv.lock限制版本下载的功能，但是他们将会开发此功能，[网址](https://github.com/astral-sh/uv/issues/15945)
+
+此处将不会提供完整的，通过uv管理依赖的方式，只会提供一些思路，下面的代码会有一些小bug：
+```py
+#noxfile.py
+import os
+
+def install_with_constraints(session, *args, **kwargs):
+    try:
+        session.run(
+            "uv",
+            "export",
+            "--no-hashes",
+            "--format=requirements-txt",
+            "-o",
+            "constraints.txt",
+            silent=True,
+        )
+        session.install("-c", "constraints.txt", *args, **kwargs)
+    finally:
+        os.remove("constraints.txt")
+```
+通过该方式可以在nox中下载带限制的依赖。
 
 ## 使用 pre-commit 管理Git Hooks
 Git提供了Hook，允许你在重要操作发生（如提交，推送）时运行自定义命令。你可以利用这一点在提交更改时运行自动化检查。pre-commit是一个用于管理和维护此类Hook的框架。使用它可以将最佳行业标准代码检查工具集成到你的工作流程中，即使这些工具是用除Python以外的语言编写的。
