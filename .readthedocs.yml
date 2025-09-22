@@ -9,7 +9,7 @@ build:
     python: "3.11"
   jobs:
     pre_install:
-      - pip install sphinx myst-parser sphinx-rtd-theme sphinx-autodoc-typehints
+      - pip install sphinx myst-parser sphinx-rtd-theme sphinx-autodoc2
 
 
 formats:
