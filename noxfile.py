@@ -54,12 +54,20 @@ def typeguard(session):
 @nox.session(python="3.11")
 def docs(session: Session) -> None:
     """Build the documentation."""
-    session.run("uv", "sync", "--dev", external=True)
+    session.run("uv", "sync", external=True)
+    session.install(
+        "myst-parser",
+        "sphinx",
+        "sphinx-autodoc-typehints",
+        "sphinx-autodoc2",
+        "sphinx_rtd_theme",
+    )
     session.run("sphinx-build", "docs", "docs/_build")
+
 
 @nox.session(python=["3.8", "3.7"])
 def xdoctest(session: Session) -> None:
     """Run examples with xdoctest."""
     args = session.posargs or ["all"]
     session.run("uv", "sync", external=True)
-    session.run( "xdoctest", package, *args)
+    session.run("xdoctest", package, *args)

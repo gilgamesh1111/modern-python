@@ -17,8 +17,7 @@ class Page(BaseModel):
 
     Attributes:
         title: The title of the Wikipedia page.
-        extract: A plain text summary.
-
+        extract: The summary of the Wikipedia page.
     """
 
     title: str
@@ -37,6 +36,9 @@ def random_page(language: str = "en") -> Page:
     Raises:
         ClickException: The HTTP request failed or the HTTP response
             contained an invalid body.
+
+    Returns:
+        A page resource.
 
     Example:
         >>> from modern_python import wikipedia

@@ -1,16 +1,15 @@
 ```{toctree}
-:maxdepth: -1
 :hidden:
 :caption: 目录
 
-index
 getting_started
 testing
 linting
 typing
-doucumentation
+documentation
 CICD
 apidocs/index
+LICENSE
 ```
 
 # Welcome to Modern Python

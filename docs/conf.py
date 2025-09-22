@@ -6,11 +6,9 @@ author = "Gilgamesh"
 copyright = f"2025, {author}"
 language = "zh_CN"
 extensions = [
-    "autodoc2",
-    "sphinx.ext.napoleon",
-    "sphinx_autodoc_typehints",
     "myst_parser",
     "sphinx_rtd_theme",
+    "autodoc2",
 ]
 
 html_theme = "sphinx_rtd_theme"
@@ -26,13 +24,7 @@ latex_documents = [
 
 autodoc2_packages = [
     {
-        "path": "../src/modern_python",
+        "path": "../src/modern_python",  # 从 conf.py 到您的包的相对路径
+        "auto_mode": True,
     },
-]
-
-autodoc2_render_plugin = "myst"
-
-myst_enable_extensions = [
-    "colon_fence",
-    "fieldlist",
 ]

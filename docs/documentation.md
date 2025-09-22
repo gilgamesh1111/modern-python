@@ -122,13 +122,42 @@ sessions marked with * are selected, sessions marked with - are skipped.
 以下是关于记录测试用例的三个有用指南：
 - 明确说明预期的行为，并对此进行具体说明。
 - 省略所有从它是测试用例这一事实中已经可以推断出来的内容。例如，避免使用像“测试是否”、“正确”、“应该”这样的词。
-- 使用'It'来指代被测试的系统。无需反复写出被测试的具体函数、类或模块的名称。。（更好的地方可能是测试模块的文档字符串，或者如果使用测试类，那么就在测试类中。）
+- 使用'It'来指代被测试的系统。无需反复写出被测试的具体函数、类或模块的名称。（更好的地方可能是测试模块的文档字符串，或者如果使用测试类，那么就在测试类中。）
 
 以下示例演示了如何为测试用例编写文档字符串：
 ```py
 # tests/test_console.py
 def test_main_succeeds(runner: CliRunner, mock_requests_get: Mock) -> None:
     """It exits with a status code of zero."""
+```
+
+## 使用ruff验证文档字符串与函数的一致性
+
+文档很容易与代码库脱节。将其嵌入代码库可以减轻这个问题，这也是docstrings如此有用的原因之一：它们紧挨着它们所描述的内容，因此很容易保持同步。
+
+然而，在没有严格限制下docstrings依然容易与代码脱节。好消息是，通过遵循像Google风格这样的docstring约定，你可以让工具检测到这种偏差。
+
+Ruff可以检查docstring描述是否与函数定义匹配，其使用pydoclint内核检查。例如，假设你将wikipedia.random_page的language参数重命名为lang，但忘记更新docstring。Ruff会注意到并提醒你以下警告：
+```
+Missing argument description in the docstring for `random_page`: `lang`
+```
+在pyproject.toml中启用这个功能：
+```toml
+#pyproject.toml
+[tool.ruff]
+select = ["C","E","F","W","I","B","B9","S","ANN","D","DOC"]
+```
+在我写该文档时，需要启用ruff的`preview`功能才会进行docstring检查
+```toml
+# pyproject.toml
+[tool.ruff]
+preview = true
+```
+默认情况下，Ruff要求每个文档字符串必须完全指定参数、返回值和异常。在某些情况下，这可能不是我们想要的的。例如，记录测试函数或Nox session的参数通常会创建冗余。通过配置文件配置ruff以接受单行文档字符串：
+```toml
+# pyproject.toml
+[tool.ruff.lint.pydoclint]
+ignore-one-line-docstrings = true
 ```
 ## 使用 xdoctest 运行文档示例
 好的示例可以替代冗长的解释，人们擅长从示例中学习。
@@ -186,7 +215,7 @@ $ uv run xdoctest modern_python.wikipedia
 将以下Nox session添加。此session会安装依赖包，因为工具本身以及示例都需要能够导入它。
 ```py
 # noxfile.py
-@nox.session(python=["3.8", "3.7"])
+@nox.session(python=["3.11", "3.12"])
 def xdoctest(session: Session) -> None:
     """Run examples with xdoctest."""
     args = session.posargs or ["all"]
@@ -198,8 +227,154 @@ def xdoctest(session: Session) -> None:
 Xdoctest以及作为插件与Pytest集成，因此也可以将此工具安装到现有的Nox会话中用于Pytest，并通过--xdoctest选项启用它。在这里，我们使用的是独立模式，其优点是保持单元测试和doctest分离。
 
 ## 使用 Sphinx 创建文档
-Sphinx是官方Python文档和许多开源项目使用的文档工具。将Sphinx添加为的开发依赖：
+Sphinx是一个Python文档工具，它可以生成文档，包括HTML，PDF和其他格式。本书的文档就是使用Sphinx生成的。其他竞品，比如[mkdocs](https://www.mkdocs.org/)，当前也被广泛使用，许多大型项目也使用mkdocs生成文档，如[fastapi](https://fastapi.tiangolo.com/)和[uvicorn](https://www.uvicorn.org/)。个人来说更喜欢sphinx的效果，于是这里将会讲解如何使用sphinx来生成文档。
+
+将sphinx添加到你的开发者依赖项：
 ```bash
 $ uv add sphinx --dev
 ```
-创建一个名为docs的目录。主文档位于文件docs/index.rst中。让我们从一个简单的占位文本开始：
+创建一个名为docs的目录。主文档位于文件docs/index.md中。让我们从一个简单的占位文本开始：
+> 从sphinx来说，其使用的是rst文件（Restructured Text）,但其糟糕的语法和难以忍受的编码体验，令我去寻找更好的工具。
+>
+> 了解到[myst-parser](https://myst-parser.readthedocs.io/)可以通过编写md文本的方式来构建文档，而md文本的语法更加简单，更加易读，编写体验更好，而且广泛的应用在大模型中，并且你可以注意到，README文档即是使用md编写。
+>
+
+为了使用md编写，我们需要添加依赖：
+```bash
+$ uv add myst-parser --dev
+```
+
+创建Sphinx配置文件docs/conf.py。这提供了关于项目的元信息：
+```py
+# docs/conf.py
+"""Sphinx configuration."""
+project = "modern-python"
+author = "Your Name"
+copyright = f"2025, {author}"
+# Enable MyST in Sphinx
+extensions = ["myst_parser"]
+```
+添加一个Nox session来构建文档：
+```py
+# noxfile.py
+@nox.session(python="3.11")
+def docs(session: Session) -> None:
+    """Build the documentation."""
+    session.install("sphinx","myst-parser")
+    session.run("sphinx-build", "docs", "docs/_build")
+```
+为了保险起见，将docs/conf.py包含在代码检查session：
+```py
+# noxfile.py
+locations = "src", "tests", "noxfile.py", "docs/conf.py"
+```
+运行 Nox session：
+```bash
+$ uv run nox -s docs
+```
+现在可以在浏览器中打开文件docs/_build/index.html，以离线查看您的文档。
+## 使用Myst编写文档
+关于md语法，可以参考[文档](https://markdown.com.cn/basic-syntax/)
+
+Sphinx文档可以分散在多个相互连接的文件中。我们可以通过在文档中加入许可证来查看这是如何工作的。创建文件docs/license.md，该文件使用include指令包含父目录中的LICENSE文件：
+
+    ```{eval-rst}
+
+    .. include:: ../LICENSE
+
+    ```
+这里的eval-rst，是myst的拓展语法，表示在其内部可以使用rst语法。这里的include指令是rst语法：将外部文件的内容 “嵌入” 到当前文档中。
+其效果可见LICENSE。
+
+通过在docs/index.md的主文档中添加toctree指令，将许可证添加到导航侧边栏。
+
+    ```{toctree}
+    :hidden:
+    :caption: 目录
+
+    LICENSE
+    ```
+`:hidden:`选项防止目录被插入到主文档本身，目录已经包含在侧边栏中。
+
+这里的toctree其基本格式如下
+```
+{toctree}
+:选项1: 值1
+:选项2: 值2
+
+文档路径1
+文档路径2
+...
+```
+
+使用Nox构建文档。在浏览器中重新加载页面后，你应该可以在导航侧边栏中看到许可证。
+
+```bash
+$ uv run nox -rs docs
+```
+## 使用autodoc2生成API文档
+
+我们使用 Sphinx 从包中的文档字符串和类型注解生成 API 文档，使用了三个 Sphinx 扩展：
+
+- sphinx-autodoc2 允许 Sphinx 从包中的文档字符串生成 API 文档。
+- napoleon 预处理 Google 风格的文档字符串为 reStructuredText。
+- sphinx-autodoc-typehints 使用类型注解来记录函数参数和返回值的类型。
+
+autodoc 和 napoleon 扩展为 Sphinx 内置 ，无需显式安装。
+
+将 sphinx-autodoc-typehints 添加到开发依赖项中：
+```bash
+$ uv add sphinx-autodoc-typehints sphinx-autodoc2 --dev
+```
+将扩展和的你的依赖安装到Nox session中。包是必需的，这样Sphinx才能读取其文档字符串和类型注解。
+```py
+# noxfile.py
+@nox.session(python="3.11")
+def docs(session: Session) -> None:
+    """Build the documentation."""
+    session.run("uv", "sync", external=True)
+    session.install("myst-parser", "sphinx", "sphinx-autodoc2")
+    session.run("sphinx-build", "docs", "docs/_build")
+```
+
+激活拓展：
+```py
+# docs/conf.py
+project = "modern-python"
+author = "Your Name"
+copyright = f"2025, {author}"
+extensions = [
+    "myst_parser",
+    "autodoc2",
+]
+
+# -- Autodoc2 配置 ---------------------------------------------------
+
+# 启用自动模式并指定要文档化的包
+autodoc2_packages = [
+    {
+        "path": "../src/modern_python",  # 从 conf.py 到您的包的相对路径
+        "auto_mode": True,
+    },
+]
+
+# 将默认输出格式设置为 MyST Markdown
+autodoc2_render_plugin = "myst"
+
+```
+在 index.md 中添加以下内容：
+
+    ```{toctree}
+    :hidden:
+    :caption: 目录
+
+    apidocs/index
+    LICENSE
+    ```
+
+其效果可在 API Reference 中看到。
+
+
+当然存在其他生成api reference的方法，例如fastapi的[文档](https://fastapi.tiangolo.com/reference/fastapi/#fastapi.FastAPI--example)使用mkdocs生成
+
+若读者对其感兴趣可以在issue中向我提交，我会在后续加入。
