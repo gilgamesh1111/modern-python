@@ -138,7 +138,7 @@ TOTAL                              19      1      2      1    90%
 
 ## 使用`Nox`进行测试自动化
 
-[`Nox`](https://nox.thea.codes/) 是 [`tox`](https://tox.readthedocs.io/)的继任者。该工具自动化了在多个Python环境中的测试。Nox只需安装任务所需的依赖项,就可以简单地隔离环境中运行任何类型的任务。
+[`Nox`](https://nox.thea.codes/) 是 [`tox`](https://tox.readthedocs.io/)的继任者。该工具能自动化在多个Python环境中的测试。Nox只需安装任务所需的依赖项,就可以简单地隔离环境中运行任何类型的任务。
 
 安装`nox`：
 ```bash
@@ -191,8 +191,8 @@ $ uv run nox -- tests/test_console.py
 $ uv run pytest tests/test_console.py --cov
 ```
 ## 模拟工具`mock`
-`mock`来源于`unittest.mock`，是Python标准库的一部分。该库有三个重要的模块。
-- `Mock`：简单的模拟对象。我们可以任意捏造他没有的属性或者方法
+[`mock`](https://www.bilibili.com/video/BV1bawPesEZL/?share_source=copy_web&vd_source=189ac0e5f555cc7d23863c9d75a86118)来源于`unittest.mock`，是Python标准库的一部分。该库有三个重要的模块。
+- `Mock`：简单的模拟对象。我们可以任意塑造他没有的属性或者方法
     ```python
     from unittest.mock import Mock
 
@@ -201,7 +201,7 @@ $ uv run pytest tests/test_console.py --cov
     print(mock.get())
     ```
     这里我们捏造了`get`方法，调用该方法会返回字符串`abc`。
-- `MagicMock`：是`Mock`的升级版，可以定义魔法方法。
+- `MagicMock`：是`Mock`的升级版，可以定义魔法方法（关于魔法方法参考[视频](https://www.bilibili.com/video/BV1vx421D7AP/?share_source=copy_web&vd_source=189ac0e5f555cc7d23863c9d75a86118)）。
     ```python
     from unittest.mock import MagicMock
 
@@ -380,7 +380,7 @@ if __name__ == "__main__":
 ```
 最后，调用Nox进行测试。
 ## Example CLI：优雅地处理异常
-如果在没有互联网连接的情况下运行示例应用程序，终端将充满长长的错误跟踪信息。这就是当Python解释器因未处理的异常而终止时发生的情况。对于这种常见的错误，最好在屏幕上打印一条友好且富有信息性的消息。
+如果在没有互联网连接的情况下运行示例应用程序，终端将充满冗长的错误跟踪信息。这就是当Python解释器因未处理的异常而终止时发生的情况。对于这种常见的错误，最好在屏幕上打印一条方便阅读且具体的消息。
 
 让我们将其表达为一个测试用例，通过配置模拟来引发一个`RequestException`。（requests库有更具体的异常类，但在这个例子中，我们只处理基类。）
 ```python
