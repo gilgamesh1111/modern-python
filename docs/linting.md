@@ -45,7 +45,7 @@ def lint(session):
 这样会显著增强代码格式化的体验。
 
 在`ruff`中，我们可以显式要求`ruff`需要检查什么，比如
-- F 会解析源文件并查找无效Python代码的工具。
+- F 会解析源文件并查找无效的Python代码。
 - W 和 E是警告和错误，其会检查你的Python代码是否符合PEP 8中的一些样式约定。
 - C会检查你的Python包的代码复杂度是否超过了配置的限制。
 
@@ -57,9 +57,8 @@ def lint(session):
 在配置文件`pyproject.toml`中，可以添加以下，以启用其内置违规类并设置复杂度限制：
 ```toml
 # pyproject.toml
-[tool.ruff]
-select = ["C","E","F","W"]
-max-complexity = 10
+[tool.ruff.lint]
+select = ["C","E","F","W","C901"]
 ```
 默认情况下，Nox会运行在noxfile.py中定义的所有session。使用--session(-s)选项来限制它只运行特定的session：
 ```bash
@@ -101,8 +100,8 @@ from modern_python import wikipedia
 启用Ruff导入检查（`I` 为 `import`）：
 ```toml
 # pyproject.toml
-[tool.ruff]
-select = ["C","E","F","W","I"]
+[tool.ruff.lint]
+select = ["C","E","F","W","I","C901"]
 ```
 Ruff 会自动识别哪个是本地库。
 
@@ -112,17 +111,17 @@ ruff 可以帮助你在程序中找到各种错误和设计问题。
 在配置文件中启用插件警告（B代表bugbear）：
 ```toml
 # pyproject.toml
-[tool.ruff]
-select =  ["C","E","F","W","I","B","B9"]
+[tool.ruff.lint]
+select =  ["C","E","F","W","I","B","B9","C901"]
 ```
 `B9`会提供比`B`更具有意见性的建议（如代码可读性，可维护性），这些建议默认是禁用的。特别是，`B901`会检查最大行长度，就像内置的`E501`一样，但有一个10%的容忍度。忽略内置`E501`并将最大行长度设置为合理的值：
 ```toml
 # pyproject.toml
-[ruff.tool]
+[tool.ruff.lint]
 ignore = ["E203","E501"]
 
-[tool.ruff.lint.pycodestyle]
-max-line-length = 100
+[tool.ruff]
+line-length = 100
 ```
 ### 使用Ruff识别安全漏洞
 `Ruff`中的安全功能来源于`Bandit`，当前仅实现了其核心功能。
@@ -130,10 +129,11 @@ max-line-length = 100
 在配置文件中启用安全插件（S代表security）：
 ```toml
 #pyproject.toml
-[tool.ruff]
+[tool.ruff.lint]
 select = ["C","E","F","W","I","B","B9","S"]
 ```
-该模式会标记出 `assert` 语句（警告代码 B101），因为`assert`主要用于调试，并且在 Python 以优化模式（使用 -O 标志）运行时会被移除。这意味着如果在生产代码中使用 `assert` 来强制执行接口约束或进行任何形式的输入验证，那么当代码被优化时，这些检查将被完全删除，从而可能引入安全漏洞。
+该模式会标记出 `assert` 语句（警告代码 B101），因为`assert`主要用于调试，并且在 Python 以优化模式（使用 -O 标志）运行时会被移除。这意味着如果在生产代码 (
+运行在生产环境的程序逻辑本体) 中使用`assert` 来强制执行接口约束或进行任何形式的输入验证，那么当代码被优化时，这些检查将被完全删除，从而可能引入安全漏洞。
 
 与在生产代码中的使用不同，assert 语句是 Pytest 测试框架的核心组成部分。在 Pytest 中，assert 用于验证测试的期望结果是否为真。如果 assert 的条件为假，Pytest 会捕获 AssertionError 并将测试标记为失败，同时提供详细的失败报告。
 
@@ -156,6 +156,8 @@ $ uv run pip-audit
 ```
 在nox中：
 ```py
+from nox.sessions import Session
+
 @nox.session(python="3.11")
 def audit(session: Session) -> None:
     """Check for known security vulnerabilities in dependencies."""
@@ -181,7 +183,7 @@ $ uv remove insecure-package
 ## 使用 uv 在 Nox session 中管理依赖
 
 ## 使用 pre-commit 管理Git Hooks
-Git提供了Hook，允许你在重要操作发生（如提交，推送）时运行自定义命令。你可以利用这一点在提交更改时运行自动化检查。pre-commit是一个用于管理和维护此类Hook的框架。使用它可以将最佳行业标准代码检查工具集成到你的工作流程中，即使这些工具是用除Python以外的语言编写的。
+Git提供了Hook，允许你在执行重要操作（如提交，推送）时运行自定义命令。你可以利用这一点在提交更改时运行自动化检查。pre-commit是一个用于管理和维护此类Hook的框架。使用它可以将最佳行业标准代码检查工具集成到你的工作流程中，即使这些工具是用除Python以外的语言编写的。
 
 安装pre-commit：
 ```bash
@@ -228,6 +230,7 @@ $ uv run pre-commit run --all-files
 
 让我们使用仓库本地`Hook`替换`Ruff`条目，并在`uv`创建的开发环境中运行`Ruff`：
 ```yaml
+#.pre-commit-config.yaml
   - repo: local
     hooks:
     - id: check
